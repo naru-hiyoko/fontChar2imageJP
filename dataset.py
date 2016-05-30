@@ -6,7 +6,7 @@ import logging
 import cPickle
 
 def load_dataset():
-    prefix = '../data/pkl'
+    prefix = '../data'
     data = None
     labels = np.asarray([], dtype=np.int32)
     

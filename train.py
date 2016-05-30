@@ -12,13 +12,12 @@ from chainer import Function, FunctionSet, Variable, optimizers, serializers, gr
 from chainer import Link, Chain, ChainList
 import chainer.functions as F
 import chainer.links as L
+from chainer import cuda
 
 import dataset
-import dataset2
 
 """ load dataset """
 train_data, train_labels = dataset.load_dataset()
-#train_data, train_labels = dataset2.load_mnist()
 
 """ network definition """
 class myNet(chainer.Chain):
@@ -35,7 +34,7 @@ class myNet(chainer.Chain):
         
 
     def __call__(self, x_data, y_data):
-        x, t = Variable(x_data), chainer.Variable(y_data)
+        x, t = Variable(cuda.to_gpu(x_data)), chainer.Variable(cuda.to_gpu(y_data))
         h = self.conv1(x)
         h = self.norm1(h)
         h = F.relu(h)
@@ -52,10 +51,11 @@ class myNet(chainer.Chain):
         return F.softmax_cross_entropy(y, t), F.accuracy(y, t)
 
 """ training configuration """
-iteration = 100
+iteration = 50
 batchsize = 200
 N = train_data.shape[0]
 model = myNet()
+model.to_gpu()
 optim = optimizers.Adam()
 optim.setup(model)
 logging.basicConfig(filename='train.log', filemode='w', level=logging.DEBUG)
@@ -86,7 +86,8 @@ for epoch in range(iteration):
         sum_loss += loss.data
         sum_accuracy += accuracy.data
 
-    logging.info(' [epoch : %d ,  loss : %f , accuracy : %f]' % (epoch+1, sum_loss * batchsize / N, sum_accuracy * batchsize / N))
+    status = ' | epoch: {}, loss: {:0.4f}, acc: {:0.4f}'.format(epoch+1, float(sum_loss * batchsize / N), float(sum_accuracy * batchsize / N))
+    logging.info(status)
 
     prefix = '../data/snapshot'
     serializers.save_npz(join(prefix, 'trained_%d.model' % (epoch+1)), model)
