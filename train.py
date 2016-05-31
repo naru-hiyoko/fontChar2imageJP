@@ -27,8 +27,8 @@ class myNet(chainer.Chain):
             norm1 = F.BatchNormalization(20),
             conv2 = F.Convolution2D(20, 50, 5),
             norm2 = F.BatchNormalization(50),
-            ip1 = F.Linear(4050, 500),
-            ip2 = F.Linear(500, 100),
+            ip1 = F.Linear(4050, 1000),
+            ip2 = F.Linear(1000, 799),
         )
         self.train = True
         
@@ -51,14 +51,14 @@ class myNet(chainer.Chain):
         return F.softmax_cross_entropy(y, t), F.accuracy(y, t)
 
 """ training configuration """
-iteration = 50
+iteration = 100
 batchsize = 200
 N = train_data.shape[0]
 model = myNet()
 model.to_gpu()
 optim = optimizers.Adam()
 optim.setup(model)
-logging.basicConfig(filename='train.log', filemode='w', level=logging.DEBUG)
+logging.basicConfig(filename='train799.log', filemode='w', level=logging.DEBUG)
 
 """ training """
 

@@ -22,8 +22,8 @@ def load_dataset():
     for line in classlabel:
         id, c = line.split(' ')
         id = np.int32(id)
-        if id == 100:
-            break
+        #if id == 500:
+        #    break
         prog.update(id + 1)
         pklfile = join(prefix, 'data_{}.pkl'.format(id))
         assert exists(pklfile), 'PKL FILE NOT FOUND'
