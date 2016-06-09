@@ -68,7 +68,7 @@ def load():
             char = unicode(char, 'utf-8').rstrip()
             id = ord(char)
             """ ユニコードをキーとして参照 """
-            copus[id] = char
+            copus[id] = (char, i)
             """ label.txt に基づいた参照 """
             chars[i] = char
             
@@ -76,6 +76,7 @@ def load():
 
 def confusion_matrix(chars):
     matrix = []
+    # 0,1,2と見ていくのは危険かもしれない
     for i in range(len(chars.keys())):
         pklfile = join(prefix, 'data_{}.pkl'.format(i))
         assert exists(pklfile), 'pkl was not found!'
@@ -90,6 +91,22 @@ def confusion_matrix(chars):
             showTop5(prob, chars)
     
     return np.vstack(matrix)
+
+def computeVec(chars):
+    features = dict()
+    for i in chars.keys():
+        pklfile = join(prefix, 'data_{}.pkl'.format(i))
+        assert exists(pklfile), 'pkl was not found!'
+        print chars[i],
+        print ' : ', 
+        with open(pklfile, 'r') as f2:
+            pkl = cPickle.load(f2)
+            data = pkl['data']
+            label = pkl['labels']
+            prob = forward(data, label)
+            features[i] = prob
+    
+    return prob
 
 if __name__ == '__main__':
     copus, chars = load()
