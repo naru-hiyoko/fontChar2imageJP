@@ -12,15 +12,10 @@ from chainer import Link, Chain, ChainList
 import chainer.functions as F
 import chainer.links as L
 
-prefix = '../data'
+from progressbar import ProgressBar
 
-def showTop5(prob, chars):
-    ans = sorted(enumerate(prob), key=lambda x: x[1], reverse=True)
-    for i in range(5):
-        id = ans[i][0]
-        print chars[id],
-        print '{:0.3f}'.format(ans[i][1]),
-    print '\n'
+import matplotlib.pyplot as plt
+
 
 model = FunctionSet(
     conv1 = F.Convolution2D(1, 20, 5),
@@ -31,7 +26,7 @@ model = FunctionSet(
     ip2 = F.Linear(1000, 799),
 )
 
-def forward(x_data, y_data, train=False):
+def forward(x_data, y_data, train=False, normalized=False):
     x, t = Variable(x_data), chainer.Variable(y_data)
     h = model.conv1(x)
     h = model.norm1(h)
@@ -45,20 +40,19 @@ def forward(x_data, y_data, train=False):
     h = F.relu(h)
     h = model.ip2(h)
     y = h
-    #prob = F.softmax(y)
-    #prob = prob.data.sum(axis=0) / np.float32(prob.data.shape[0])    
-    prob = y.data.sum(axis=0) / np.float32(y.data.shape[0])
 
+    if normalized:
+        prob = F.softmax(y)
+        prob = prob.data.sum(axis=0) / np.float32(prob.data.shape[0])
+    else:
+        prob = y.data.sum(axis=0) / np.float32(y.data.shape[0])
 
-    """ softmax normalization + compute loss & validation """
-    #return F.softmax_cross_entropy(y, t), F.accuracy(y, t), prob
     return prob
 
 
 def load():
     copus = dict()
     chars = dict()
-
     serializers.load_npz('../data/snapshot/trained_100.model', model)    
     
     with open('label.txt') as f:
@@ -68,11 +62,14 @@ def load():
             char = unicode(char, 'utf-8').rstrip()
             id = ord(char)
             """ ユニコードをキーとして参照 """
-            copus[id] = (char, i)
+            copus[id] = i
             """ label.txt に基づいた参照 """
             chars[i] = char
             
     return copus, chars
+
+
+prefix = '../data'
 
 def confusion_matrix(chars):
     matrix = []
@@ -86,30 +83,66 @@ def confusion_matrix(chars):
             pkl = cPickle.load(f2)
             data = pkl['data']
             label = pkl['labels']
-            prob = forward(data, label)
+            prob = forward(data, label, normalized=True)
             matrix.append(prob)
-            showTop5(prob, chars)
+            ret = showTop5(prob, chars)
+            print ret[0], ret[1], ret[2], ret[3], ret[4]
     
-    return np.vstack(matrix)
+    matrix = np.vstack(matrix)
+    print matrix.shape
+    plt.title('confusion matrix')
+    plt.imshow(matrix, interpolation='none')
+    plt.show()
 
 def computeVec(chars):
     features = dict()
+    N = len(chars.keys())
+    prog = ProgressBar()
+    prog.max_value = N
+    prog.start()
     for i in chars.keys():
+        prog.update(int(i)+1)
         pklfile = join(prefix, 'data_{}.pkl'.format(i))
         assert exists(pklfile), 'pkl was not found!'
-        print chars[i],
-        print ' : ', 
         with open(pklfile, 'r') as f2:
             pkl = cPickle.load(f2)
             data = pkl['data']
             label = pkl['labels']
             prob = forward(data, label)
             features[i] = prob
-    
-    return prob
+    prog.finish()
+    return features
+
+def showTop5(prob, chars):
+    ans = sorted(enumerate(prob), key=lambda x: x[1], reverse=True)
+    topK = []
+    for i in range(5):
+        id = ans[i][0]
+        topK.append(chars[id])
+    return topK
+
+
+def setup():
+    features_file = 'features.pkl'
+    copus, chars = load()
+    if not exists(features_file):
+        features = computeVec(chars)
+        data = { 'copus' : copus,
+                 'chars' : chars,
+                 'features' : features,
+        }
+        with open(features_file, 'w') as f:
+            cPickle.dump(data, f, -1)
+    else:
+        with open(features_file, 'rb') as f:
+            data = cPickle.load(f)
+
+    features = data['features']
+    copus = data['copus']
+    chars = data['chars']
+    return (copus, features, chars)
 
 if __name__ == '__main__':
     copus, chars = load()
-    ret = confusion_matrix(chars)
-    
-        
+    confusion_matrix(chars)
+    #setup()
