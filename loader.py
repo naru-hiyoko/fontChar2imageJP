@@ -7,7 +7,7 @@ import cPickle
 import numpy as np
 
 import chainer
-from chainer import Function, FunctionSet, Variable, optimizers, serializers, gradient_check, utils
+from chainer import Function, FunctionSet, Variable, optimizers, serializers, utils
 from chainer import Link, Chain, ChainList
 import chainer.functions as F
 import chainer.links as L
@@ -16,6 +16,7 @@ from progressbar import ProgressBar
 
 import matplotlib.pyplot as plt
 
+prefix = '../data'
 
 model = FunctionSet(
     conv1 = F.Convolution2D(1, 20, 5),
@@ -53,8 +54,8 @@ def forward(x_data, y_data, train=False, normalized=False):
 def load():
     copus = dict()
     chars = dict()
-    serializers.load_npz('../data/snapshot/trained_100.model', model)    
-    
+    serializers.load_npz(join(prefix, 'snapshot/trained_100.model'), model)
+    """ label.txt が必要 """
     with open('label.txt') as f:
         for line in f.readlines():
             i, char = line.split(' ')
@@ -65,17 +66,13 @@ def load():
             copus[id] = i
             """ label.txt に基づいた参照 """
             chars[i] = char
-            
     return copus, chars
-
-
-prefix = '../data'
 
 def confusion_matrix(chars):
     matrix = []
     # 0,1,2と見ていくのは危険かもしれない
     for i in range(len(chars.keys())):
-        pklfile = join(prefix, 'data_{}.pkl'.format(i))
+        pklfile = join(prefix, 'pkl', 'data_{}.pkl'.format(i))
         assert exists(pklfile), 'pkl was not found!'
         print chars[i],
         print ' : ', 
@@ -102,7 +99,7 @@ def computeVec(chars):
     prog.start()
     for i in chars.keys():
         prog.update(int(i)+1)
-        pklfile = join(prefix, 'data_{}.pkl'.format(i))
+        pklfile = join(prefix, 'pkl', 'data_{}.pkl'.format(i))
         assert exists(pklfile), 'pkl was not found!'
         with open(pklfile, 'r') as f2:
             pkl = cPickle.load(f2)
@@ -121,9 +118,8 @@ def showTop5(prob, chars):
         topK.append(chars[id])
     return topK
 
-
 def setup():
-    features_file = 'features.pkl'
+    features_file = 'share/trained/features.pkl'
     copus, chars = load()
     if not exists(features_file):
         features = computeVec(chars)
@@ -144,5 +140,5 @@ def setup():
 
 if __name__ == '__main__':
     copus, chars = load()
-    confusion_matrix(chars)
-    #setup()
+    #confusion_matrix(chars)
+    setup()

@@ -3,6 +3,7 @@
 import sys
 import pygame
 import os
+from os.path import join
 from pygame.locals import *
 from pygame import freetype
 from PIL import Image
@@ -16,8 +17,7 @@ from skimage.color import rgb2grey
 from progressbar import ProgressBar
 
 import cPickle
-
-import cv2
+#import cv2
 
 white = (255, 255, 255)
 black = (0, 0, 0)
@@ -80,7 +80,7 @@ def expand(image, sz):
 if __name__ == '__main__':
     sz = (48, 48)
     """ 保存先 """
-    prefix = '../data/pkl'
+    prefix = '../data'
     pygame.init()
     #gameDisplay = pygame.display.set_mode(sz)
     #pygame.display.set_caption('test')
@@ -101,7 +101,7 @@ if __name__ == '__main__':
         progress.update(id+1)
         labels = []
         data = []
-        pklfile = os.path.join(prefix,'data_{}.pkl'.format(id))
+        pklfile = os.path.join(prefix, 'pkl', 'data_{}.pkl'.format(id))
         text = c.decode('utf-8').rstrip()
 
         # 各文字何枚生成するか
@@ -165,23 +165,3 @@ if __name__ == '__main__':
         
     f.close()
     progress.finish()
-    
-    
-    """
-    clock = pygame.time.Clock()
-    
-        while True:
-            gameDisplay.fill(white)
-            gameDisplay.blit(bg_surf, bg_rect)
-        
-            for event in pygame.event.get():
-            
-                if event.type == pygame.KEYDOWN:
-                    #save_screen_img(bg_surf, 'hello.jpg')
-                    print image.shape
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-            pygame.display.update()
-            clock.tick(60)
-    """

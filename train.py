@@ -1,3 +1,4 @@
+#!/usr/local/bin/python2.7
 # encoding: utf-8
 
 import numpy as np
@@ -5,8 +6,6 @@ import sys
 from os.path import join
 from progressbar import ProgressBar, Percentage, Bar
 import logging
-
-
 import chainer
 from chainer import Function, FunctionSet, Variable, optimizers, serializers, gradient_check, utils
 from chainer import Link, Chain, ChainList
@@ -58,7 +57,7 @@ model = myNet()
 model.to_gpu()
 optim = optimizers.Adam()
 optim.setup(model)
-logging.basicConfig(filename='train799.log', filemode='w', level=logging.DEBUG)
+logging.basicConfig(filename='train.log', filemode='w', level=logging.DEBUG)
 
 """ training """
 
