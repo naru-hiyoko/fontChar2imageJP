@@ -54,7 +54,12 @@ def forward(x_data, y_data, train=False, normalized=False):
 def load():
     copus = dict()
     chars = dict()
-    serializers.load_npz(join(prefix, 'snapshot/trained_100.model'), model)
+    try:
+        serializers.load_npz(join(prefix, 'snapshot/trained_100.model'), model)
+    except IOError as e:
+        print e
+        print 'this may cause some error !'
+        
     """ label.txt が必要 """
     with open('label.txt') as f:
         for line in f.readlines():
@@ -119,7 +124,7 @@ def showTop5(prob, chars):
     return topK
 
 def setup():
-    features_file = 'share/trained/features.pkl'
+    features_file = 'features.pkl'
     copus, chars = load()
     if not exists(features_file):
         features = computeVec(chars)
