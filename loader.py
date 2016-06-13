@@ -58,7 +58,6 @@ def load():
         serializers.load_npz(join(prefix, 'snapshot/trained_100.model'), model)
     except IOError as e:
         print e
-        print 'this may cause some error !'
         
     """ label.txt が必要 """
     with open('label.txt') as f:
@@ -125,6 +124,7 @@ def showTop5(prob, chars):
 
 def setup():
     features_file = 'features.pkl'
+    """ copus は unicode -> id を指します """
     copus, chars = load()
     if not exists(features_file):
         features = computeVec(chars)
