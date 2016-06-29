@@ -125,8 +125,8 @@ def showTop5(prob, chars):
 def setup():
     features_file = 'features.pkl'
     """ copus は unicode -> id を指します """
-    copus, chars = load()
     if not exists(features_file):
+        copus, chars = load()
         features = computeVec(chars)
         data = { 'copus' : copus,
                  'chars' : chars,
@@ -144,6 +144,6 @@ def setup():
     return (copus, features, chars)
 
 if __name__ == '__main__':
-    copus, chars = load()
+    #copus, chars = load()
     #confusion_matrix(chars)
     setup()
